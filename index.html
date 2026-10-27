@@ -2,796 +2,360 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Exploradores do Sistema Circulatório 🫀</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Core Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <!-- Canvas Confetti para Efeito de Vitória -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        arterial: '#EF4444',
-                        venoso: '#2563EB',
-                        capilar: '#8B5CF6',
-                        cardiac: '#DC2626',
-                        bgDark: '#0F172A',
-                    },
-                    fontFamily: {
-                        outfit: ['Outfit', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador do Sistema Circulatório</title>
     <style>
-        body {
-            font-family: 'Outfit', sans-serif;
+        :root {
+            --primary-red: #e63946;
+            --dark-red: #9d0208;
+            --light-blue: #a8dadc;
+            --dark-blue: #1d3557;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #2b2d42;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
         }
 
-        /* Animação para Turn Cards */
-        .perspective-1000 {
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--dark-red), var(--primary-red));
+            color: white;
+            width: 100%;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.2rem;
+        }
+
+        header p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            max-width: 600px;
+            padding: 0.8rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.6rem 0.2rem;
+            border: none;
+            background-color: #e0e0e0;
+            color: var(--dark-blue);
+            font-weight: bold;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background-color: var(--dark-blue);
+            color: white;
+        }
+
+        main {
+            width: 100%;
+            max-width: 600px;
+            padding: 0.8rem;
+            flex-grow: 1;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* MEMORY GAME STYLES */
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .memory-card {
+            aspect-ratio: 1;
+            background-color: var(--dark-blue);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            cursor: pointer;
             perspective: 1000px;
-        }
-        .transform-style-3d {
-            transform-style: preserve-3d;
-        }
-        .backface-hidden {
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-        }
-        .rotate-y-180 {
-            transform: rotateY(180deg);
+            transition: transform 0.3s;
         }
 
-        /* Animação de Pulsar o Coração */
-        @keyframes heartbeat {
-            0% { transform: scale(1); }
-            14% { transform: scale(1.15); }
-            28% { transform: scale(1); }
-            42% { transform: scale(1.15); }
-            70% { transform: scale(1); }
-        }
-        .animate-heartbeat {
-            animation: heartbeat 1.6s infinite ease-in-out;
+        .memory-card.flipped, .memory-card.matched {
+            background-color: var(--card-bg);
+            border: 2px solid var(--primary-red);
         }
 
-        /* Efeitos de gradiente dinâmico */
-        .bg-blood-gradient {
-            background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 50%, #450a0a 100%);
+        .memory-card.matched {
+            border-color: #2a9d8f;
+            opacity: 0.6;
+            cursor: default;
         }
 
-        /* Custom Scrollbars */
-        ::-webkit-scrollbar {
-            width: 6px;
+        .memory-card span {
+            display: none;
         }
-        ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.6);
+
+        .memory-card.flipped span, .memory-card.matched span {
+            display: block;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #ef4444;
-            border-radius: 4px;
+
+        /* QUIZ STYLES */
+        .quiz-card {
+            background: white;
+            padding: 1.2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .quiz-question {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--dark-blue);
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .quiz-option {
+            padding: 0.8rem;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            background: none;
+            text-align: left;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .quiz-option.correct {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .quiz-option.wrong {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        .explanation {
+            margin-top: 1rem;
+            padding: 0.8rem;
+            background-color: #e8f4f8;
+            border-left: 4px solid var(--light-blue);
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        /* JOURNEY STYLES */
+        .journey-step {
+            background: white;
+            margin-bottom: 12px;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 5px solid var(--primary-red);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .journey-step h3 {
+            font-size: 1rem;
+            color: var(--dark-blue);
+            margin-bottom: 4px;
+        }
+
+        .journey-step p {
+            font-size: 0.85rem;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .btn-next {
+            margin-top: 1rem;
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--primary-red);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            display: none;
+        }
+
+        .score-board {
+            text-align: center;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--dark-blue);
         }
     </style>
 </head>
-<body class="bg-blood-gradient text-white min-h-screen flex flex-col justify-between pb-20 md:pb-0 font-outfit antialiased selection:bg-red-500 selection:text-white">
+<body>
 
-    <!-- CABEÇALHO / HEADER -->
-    <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-4 py-3 shadow-lg">
-        <div class="max-w-md mx-auto flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-full bg-red-600/20 border border-red-500/40 flex items-center justify-center text-red-500 text-xl animate-heartbeat">
-                    <i class="fa-solid fa-heart-pulse"></i>
-                </div>
-                <div>
-                    <h1 class="font-extrabold text-base leading-tight bg-gradient-to-r from-red-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-                        Biomaquete
-                    </h1>
-                    <p class="text-xs text-slate-400 font-semibold">Sistema Circulatório 🫀</p>
-                </div>
-            </div>
-            
-            <!-- Botão Som -->
-            <button id="sound-toggle" onclick="toggleSound()" class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-white active:scale-95 transition">
-                <i id="sound-icon" class="fa-solid fa-volume-high text-sm"></i>
-            </button>
-        </div>
+    <header>
+        <h1>🫀 Sistema Circulatório</h1>
+        <p>Aprenda jogando na Biomaquete!</p>
     </header>
 
-    <!-- CONTEÚDO PRINCIPAL (TELAS INTERATIVAS) -->
-    <main class="max-w-md mx-auto w-full flex-grow p-4">
-
-        <!-- ================= ABA 1: GUIA / JORNADA DO SANGUE ================= -->
-        <section id="tab-guide" class="space-y-5 animate-fade-in">
-            <!-- Card Inicial Intro -->
-            <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl relative overflow-hidden">
-                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-red-500/10 rounded-full blur-xl pointer-events-none"></div>
-                <div class="flex items-start space-x-3">
-                    <div class="p-2.5 bg-red-500/20 text-red-400 rounded-xl text-lg mt-0.5">
-                        <i class="fa-solid fa-route"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-bold text-white">A Jornada do Sangue</h2>
-                        <p class="text-xs text-slate-300 mt-1 leading-relaxed">
-                            O sangue percorre um circuito contínuo pelo corpo para levar oxigênio e nutrientes e recolher resíduos. Acompanhe a viagem abaixo:
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Etapas Interativas -->
-            <div class="space-y-3 relative before:absolute before:inset-0 before:left-6 before:w-0.5 before:bg-gradient-to-b before:from-blue-500 before:via-red-500 before:to-blue-500">
-                
-                <!-- Passo 1: Chegada do sangue venoso -->
-                <div class="relative pl-12 group">
-                    <div class="absolute left-3 -translate-x-1/2 top-1 w-7 h-7 rounded-full bg-blue-600 border-2 border-slate-900 flex items-center justify-center text-xs font-bold text-white shadow-lg">
-                        1
-                    </div>
-                    <div class="bg-slate-800/90 border border-blue-500/30 rounded-xl p-4 transition-all hover:border-blue-500/60 shadow-md">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-xs font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
-                                <i class="fa-solid fa-[#2563eb]"></i> Sangue Venoso
-                            </span>
-                            <span class="text-[10px] bg-blue-950 text-blue-300 px-2 py-0.5 rounded-full border border-blue-800/50">Pobre em O₂</span>
-                        </div>
-                        <h3 class="font-bold text-sm text-slate-100">Retorno das Veias ao Coração</h3>
-                        <p class="text-xs text-slate-300 mt-1">
-                            O sangue usado pelo corpo retorna pelas <b>veias cavas</b> até o lado direito do coração (Atrio e Ventrículo Direitos).
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Passo 2: Pequena Circulação -->
-                <div class="relative pl-12">
-                    <div class="absolute left-3 -translate-x-1/2 top-1 w-7 h-7 rounded-full bg-purple-600 border-2 border-slate-900 flex items-center justify-center text-xs font-bold text-white shadow-lg">
-                        2
-                    </div>
-                    <div class="bg-slate-800/90 border border-purple-500/30 rounded-xl p-4 transition-all hover:border-purple-500/60 shadow-md">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
-                                <i class="fa-solid fa-lungs"></i> Pequena Circulação
-                            </span>
-                            <span class="text-[10px] bg-purple-950 text-purple-300 px-2 py-0.5 rounded-full border border-purple-800/50">Hematose</span>
-                        </div>
-                        <h3 class="font-bold text-sm text-slate-100">Ida aos Pulmões</h3>
-                        <p class="text-xs text-slate-300 mt-1">
-                            O coração bombeia esse sangue para os <b>pulmões</b> pela artéria pulmonar. Lá ocorre a troca de CO₂ por oxigênio (Hematose nos alvéolos).
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Passo 3: Sangue Arterial -->
-                <div class="relative pl-12">
-                    <div class="absolute left-3 -translate-x-1/2 top-1 w-7 h-7 rounded-full bg-red-600 border-2 border-slate-900 flex items-center justify-center text-xs font-bold text-white shadow-lg">
-                        3
-                    </div>
-                    <div class="bg-slate-800/90 border border-red-500/30 rounded-xl p-4 transition-all hover:border-red-500/60 shadow-md">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-xs font-bold uppercase tracking-wider text-red-400 flex items-center gap-1.5">
-                                <i class="fa-solid fa-heart"></i> Sangue Arterial
-                            </span>
-                            <span class="text-[10px] bg-red-950 text-red-300 px-2 py-0.5 rounded-full border border-red-800/50">Rico em O₂</span>
-                        </div>
-                        <h3 class="font-bold text-sm text-slate-100">Volta ao Lado Esquerdo</h3>
-                        <p class="text-xs text-slate-300 mt-1">
-                            O sangue reoxigenado entra pelo Átrio Esquerdo e vai ao <b>Ventrículo Esquerdo</b>, a câmara mais forte do coração.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Passo 4: Grande Circulação -->
-                <div class="relative pl-12">
-                    <div class="absolute left-3 -translate-x-1/2 top-1 w-7 h-7 rounded-full bg-rose-500 border-2 border-slate-900 flex items-center justify-center text-xs font-bold text-white shadow-lg">
-                        4
-                    </div>
-                    <div class="bg-slate-800/90 border border-rose-500/30 rounded-xl p-4 transition-all hover:border-rose-500/60 shadow-md">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
-                                <i class="fa-solid fa-child"></i> Grande Circulação
-                            </span>
-                            <span class="text-[10px] bg-rose-950 text-rose-300 px-2 py-0.5 rounded-full border border-rose-800/50">Nutrição</span>
-                        </div>
-                        <h3 class="font-bold text-sm text-slate-100">Impulso pela Artéria Aorta</h3>
-                        <p class="text-xs text-slate-300 mt-1">
-                            O coração contrai fortemente e ejeta o sangue pela <b>Aorta</b> para irrigar todos os órgãos, tecidos e células do corpo.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Componentes do Sangue (Guia Rápido) -->
-            <div class="pt-2">
-                <h3 class="text-sm font-bold text-slate-200 mb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-vial text-red-400"></i> Componentes do Sangue
-                </h3>
-                <div class="grid grid-cols-2 gap-2.5">
-                    <div class="bg-slate-800/60 border border-slate-700/60 p-3 rounded-xl text-center">
-                        <div class="text-red-400 text-xl mb-1"><i class="fa-solid fa-[#ef4444] fa-circle"></i></div>
-                        <h4 class="font-bold text-xs">Glóbulos Vermelhos</h4>
-                        <p class="text-[10px] text-slate-400 mt-0.5">Transportam oxigênio (Hemoglobina)</p>
-                    </div>
-                    <div class="bg-slate-800/60 border border-slate-700/60 p-3 rounded-xl text-center">
-                        <div class="text-blue-300 text-xl mb-1"><i class="fa-solid fa-shield-halved"></i></div>
-                        <h4 class="font-bold text-xs">Glóbulos Brancos</h4>
-                        <p class="text-[10px] text-slate-400 mt-0.5">Defesa contra infecções e vírus</p>
-                    </div>
-                    <div class="bg-slate-800/60 border border-slate-700/60 p-3 rounded-xl text-center">
-                        <div class="text-yellow-400 text-xl mb-1"><i class="fa-solid fa-band-aid"></i></div>
-                        <h4 class="font-bold text-xs">Plaquetas</h4>
-                        <p class="text-[10px] text-slate-400 mt-0.5">Coagulação e cicatrização</p>
-                    </div>
-                    <div class="bg-slate-800/60 border border-slate-700/60 p-3 rounded-xl text-center">
-                        <div class="text-amber-200 text-xl mb-1"><i class="fa-solid fa-droplet"></i></div>
-                        <h4 class="font-bold text-xs">Plasma</h4>
-                        <p class="text-[10px] text-slate-400 mt-0.5">Parte líquida com nutrientes</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-        <!-- ================= ABA 2: JOGO DA MEMÓRIA ================= -->
-        <section id="tab-memory" class="hidden space-y-4">
-            <!-- Painel de Status -->
-            <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-3 flex justify-between items-center text-xs font-bold">
-                <div class="flex items-center space-x-2">
-                    <span class="text-slate-400">Tentativas:</span>
-                    <span id="memory-moves" class="text-red-400 text-sm">0</span>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <span class="text-slate-400">Tempo:</span>
-                    <span id="memory-time" class="text-blue-400 text-sm">00:00</span>
-                </div>
-                <button onclick="initMemoryGame()" class="px-2.5 py-1 bg-red-600/30 hover:bg-red-600/50 border border-red-500/40 text-red-300 rounded-lg transition text-[11px] flex items-center gap-1">
-                    <i class="fa-solid fa-rotate-right"></i> Reiniciar
-                </button>
-            </div>
-
-            <!-- Grid do Jogo (12 Cartas = 6 Pares) -->
-            <div id="memory-grid" class="grid grid-cols-3 gap-2.5 perspective-1000">
-                <!-- Injetado dinamicamente via JS -->
-            </div>
-
-            <!-- Modal / Card de Vitória -->
-            <div id="memory-win-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-                <div class="bg-slate-900 border border-red-500/50 p-6 rounded-2xl text-center max-w-xs w-full shadow-2xl relative animate-bounce-short">
-                    <div class="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 border border-red-500/40">
-                        <i class="fa-solid fa-trophy"></i>
-                    </div>
-                    <h3 class="text-xl font-extrabold text-white">Excelente!</h3>
-                    <p class="text-xs text-slate-300 mt-1">Você memorizou os principais componentes do sistema circulatório.</p>
-                    
-                    <div class="bg-slate-800/80 rounded-xl p-3 my-4 space-y-1 text-xs">
-                        <div class="flex justify-between text-slate-300">
-                            <span>Tentativas totais:</span>
-                            <span id="win-moves" class="font-bold text-red-400">0</span>
-                        </div>
-                        <div class="flex justify-between text-slate-300">
-                            <span>Tempo decorrido:</span>
-                            <span id="win-time" class="font-bold text-blue-400">0s</span>
-                        </div>
-                    </div>
-
-                    <button onclick="initMemoryGame(); hideElement('memory-win-modal')" class="w-full py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold text-sm rounded-xl shadow-lg transition">
-                        Jogar Novamente
-                    </button>
-                </div>
-            </div>
-        </section>
-
-
-        <!-- ================= ABA 3: QUIZ DE PERGUNTAS ================= -->
-        <section id="tab-quiz" class="hidden space-y-4">
-            
-            <!-- Barra de Progresso e Placar -->
-            <div id="quiz-header" class="space-y-2">
-                <div class="flex justify-between items-center text-xs font-bold text-slate-300">
-                    <span id="quiz-step-text">Pergunta 1 de 5</span>
-                    <span id="quiz-score-text" class="text-red-400">Pontos: 0</span>
-                </div>
-                <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
-                    <div id="quiz-progress" class="h-full bg-gradient-to-r from-red-500 to-blue-500 w-0 transition-all duration-300"></div>
-                </div>
-            </div>
-
-            <!-- Card da Pergunta -->
-            <div id="quiz-card" class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-4">
-                <h3 id="quiz-question" class="text-base font-bold text-slate-100 leading-snug">
-                    Carregando pergunta...
-                </h3>
-
-                <!-- Opções de Resposta -->
-                <div id="quiz-options" class="space-y-2.5">
-                    <!-- Gerado dinamicamente -->
-                </div>
-
-                <!-- Feedback Explicativo (Escondido por padrão) -->
-                <div id="quiz-explanation" class="hidden p-3.5 rounded-xl text-xs space-y-1 transition-all">
-                    <!-- Preenchido dinamicamente -->
-                </div>
-
-                <!-- Botão Avançar -->
-                <button id="quiz-next-btn" onclick="nextQuestion()" class="hidden w-full py-3 bg-red-600 hover:bg-red-500 active:scale-98 text-white font-bold text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2">
-                    <span>Próxima Pergunta</span>
-                    <i class="fa-solid fa-arrow-right"></i>
-                </button>
-            </div>
-
-            <!-- Tela de Resultados do Quiz -->
-            <div id="quiz-result" class="hidden bg-slate-900 border border-slate-700 p-6 rounded-2xl text-center space-y-4 shadow-2xl">
-                <div id="quiz-badge" class="w-20 h-20 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center text-4xl mx-auto border border-amber-500/40 animate-pulse">
-                    <i class="fa-solid fa-award"></i>
-                </div>
-                <div>
-                    <h3 id="quiz-result-title" class="text-xl font-extrabold text-white">Parabéns!</h3>
-                    <p id="quiz-result-subtitle" class="text-xs text-slate-300 mt-1">Você concluiu o desafio do sistema circulatório.</p>
-                </div>
-
-                <div class="bg-slate-800/80 rounded-xl p-4 border border-slate-700 space-y-2">
-                    <div class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-blue-400" id="quiz-final-score">
-                        0 / 5
-                    </div>
-                    <p id="quiz-feedback-msg" class="text-xs text-slate-300">
-                        Ótimo conhecimento!
-                    </p>
-                </div>
-
-                <button onclick="restartQuiz()" class="w-full py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 text-white font-bold text-sm rounded-xl shadow-lg transition">
-                    Tentar Novamente
-                </button>
-            </div>
-
-        </section>
-
-    </main>
-
-    <!-- NAVEGAÇÃO / BARRAS DE ABAS (Mobile First Bottom Bar) -->
-    <nav class="bg-slate-900/90 backdrop-blur-lg border-t border-slate-800 fixed bottom-0 inset-x-0 z-40 max-w-md mx-auto">
-        <div class="grid grid-cols-3 h-16">
-            <button onclick="switchTab('guide')" id="nav-guide" class="flex flex-col items-center justify-center space-y-1 text-red-500 font-bold transition">
-                <i class="fa-solid fa-book-medical text-lg"></i>
-                <span class="text-[11px]">Resumo</span>
-            </button>
-            <button onclick="switchTab('memory')" id="nav-memory" class="flex flex-col items-center justify-center space-y-1 text-slate-400 hover:text-slate-200 font-medium transition">
-                <i class="fa-solid fa-gamepad text-lg"></i>
-                <span class="text-[11px]">Jogo Memória</span>
-            </button>
-            <button onclick="switchTab('quiz')" id="nav-quiz" class="flex flex-col items-center justify-center space-y-1 text-slate-400 hover:text-slate-200 font-medium transition">
-                <i class="fa-solid fa-circle-question text-lg"></i>
-                <span class="text-[11px]">Quiz</span>
-            </button>
-        </div>
+    <nav>
+        <button class="tab-btn active" onclick="switchTab('quiz')">Quiz</button>
+        <button class="tab-btn" onclick="switchTab('memory')">Memória</button>
+        <button class="tab-btn" onclick="switchTab('journey')">A Jornada</button>
     </nav>
 
+    <main>
+        <!-- SEÇÃO QUIZ -->
+        <section id="quiz" class="section active">
+            <div class="score-board" id="quiz-score">Pergunta 1 de 10</div>
+            <div class="quiz-card">
+                <div class="quiz-question" id="quiz-q">Carregando...</div>
+                <div class="quiz-options" id="quiz-opts"></div>
+                <div class="explanation" id="quiz-exp"></div>
+                <button class="btn-next" id="quiz-next-btn" onclick="nextQuestion()">Próxima Pergunta</button>
+            </div>
+        </section>
 
-    <!-- LÓGICA E SCRIPTS JAVASCRIPT -->
+        <!-- SEÇÃO JOGO DA MEMÓRIA -->
+        <section id="memory" class="section">
+            <div class="score-board" id="memory-score">Pares encontrados: 0 / 6</div>
+            <div class="memory-grid" id="memory-board"></div>
+        </section>
+
+        <!-- SEÇÃO A JORNADA DO SANGUE -->
+        <section id="journey" class="section">
+            <div class="journey-step">
+                <h3>1. Átrio Direito</h3>
+                <p>O sangue rico em gás carbônico (venoso) chega do corpo pelas veias cavas e entra no átrio direito.</p>
+            </div>
+            <div class="journey-step">
+                <h3>2. Ventrículo Direito</h3>
+                <p>O sangue passa para o ventrículo direito, que o bombeia em direção aos pulmões através das artérias pulmonares.</p>
+            </div>
+            <div class="journey-step">
+                <h3>3. Pulmões (Hematose)</h3>
+                <p>Nos pulmões, ocorre a troca gasosa: o sangue deixa o gás carbônico e se carrega de oxigênio (sangue arterial).</p>
+            </div>
+            <div class="journey-step">
+                <h3>4. Átrio Esquerdo</h3>
+                <p>O sangue rico em oxigênio retorna ao coração pelas veias pulmonares, entrando no átrio esquerdo.</p>
+            </div>
+            <div class="journey-step">
+                <h3>5. Ventrículo Esquerdo</h3>
+                <p>O sangue passa para o ventrículo esquerdo, a câmara mais forte do coração.</p>
+            </div>
+            <div class="journey-step">
+                <h3>6. Artéria Aorta e Corpo</h3>
+                <p>O ventrículo esquerdo contrai e impulsiona o sangue pela artéria aorta para todo o corpo!</p>
+            </div>
+        </section>
+    </main>
+
     <script>
-        // ================= CONFIGURAÇÃO DE ÁUDIO SINTETIZADO =================
-        let soundEnabled = true;
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-        function playSound(type) {
-            if (!soundEnabled) return;
-            try {
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-
-                const now = audioCtx.currentTime;
-
-                if (type === 'flip') {
-                    osc.frequency.setValueAtTime(400, now);
-                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.08);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
-                    osc.start(now);
-                    osc.stop(now + 0.08);
-                } else if (type === 'match' || type === 'correct') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(523.25, now); // C5
-                    osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                    osc.start(now);
-                    osc.stop(now + 0.25);
-                } else if (type === 'wrong') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(220, now); // A3
-                    osc.frequency.setValueAtTime(180, now + 0.12);
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                    osc.start(now);
-                    osc.stop(now + 0.25);
-                } else if (type === 'win') {
-                    // Trinado de vitória
-                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
-                        const o = audioCtx.createOscillator();
-                        const g = audioCtx.createGain();
-                        o.connect(g);
-                        g.connect(audioCtx.destination);
-                        o.frequency.setValueAtTime(freq, now + idx * 0.08);
-                        g.gain.setValueAtTime(0.15, now + idx * 0.08);
-                        g.gain.linearRampToValueAtTime(0.01, now + idx * 0.08 + 0.2);
-                        o.start(now + idx * 0.08);
-                        o.stop(now + idx * 0.08 + 0.2);
-                    });
-                }
-            } catch(e) { console.log('Audio Context restriction', e); }
-        }
-
-        function toggleSound() {
-            soundEnabled = !soundEnabled;
-            const icon = document.getElementById('sound-icon');
-            if (soundEnabled) {
-                icon.className = 'fa-solid fa-volume-high text-sm';
-            } else {
-                icon.className = 'fa-solid fa-volume-xmark text-sm text-slate-500';
-            }
-        }
-
-
-        // ================= CONTROLE DE ABAS =================
-        function switchTab(tabName) {
-            // Esconder todas as telas
-            document.getElementById('tab-guide').classList.add('hidden');
-            document.getElementById('tab-memory').classList.add('hidden');
-            document.getElementById('tab-quiz').classList.add('hidden');
-
-            // Resetar estados dos botões
-            ['guide', 'memory', 'quiz'].forEach(t => {
-                const btn = document.getElementById(`nav-${t}`);
-                btn.className = "flex flex-col items-center justify-center space-y-1 text-slate-400 hover:text-slate-200 font-medium transition";
-            });
-
-            // Ativar aba selecionada
-            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-            const activeBtn = document.getElementById(`nav-${tabName}`);
-            activeBtn.className = "flex flex-col items-center justify-center space-y-1 text-red-500 font-bold transition";
-
-            if (tabName === 'memory' && memoryCards.length === 0) {
-                initMemoryGame();
-            } else if (tabName === 'quiz' && currentQuizIndex === 0 && quizQuestions.length === 0) {
-                initQuiz();
-            }
-        }
-
-
-        // ================= ABA 2: LÓGICA DO JOGO DA MEMÓRIA =================
-        const cardDeck = [
-            { id: 'heart', name: 'Coração', icon: 'fa-heart-pulse', color: 'text-red-500' },
-            { id: 'artery', name: 'Artérias', icon: 'fa-arrow-right-from-bracket', color: 'text-red-400' },
-            { id: 'vein', name: 'Veias', icon: 'fa-arrow-right-to-bracket', color: 'text-blue-400' },
-            { id: 'blood', name: 'Sangue', icon: 'fa-droplet', color: 'text-red-500' },
-            { id: 'lungs', name: 'Pulmões', icon: 'fa-lungs', color: 'text-purple-400' },
-            { id: 'cell', name: 'Glóbulos', icon: 'fa-shield-halved', color: 'text-blue-300' }
-        ];
-
-        let memoryCards = [];
-        let flippedCards = [];
-        let matchedPairs = 0;
-        let memoryMoves = 0;
-        let memoryTimer = null;
-        let secondsElapsed = 0;
-
-        function initMemoryGame() {
-            const grid = document.getElementById('memory-grid');
-            grid.innerHTML = '';
-            flippedCards = [];
-            matchedPairs = 0;
-            memoryMoves = 0;
-            secondsElapsed = 0;
-            
-            document.getElementById('memory-moves').innerText = '0';
-            document.getElementById('memory-time').innerText = '00:00';
-            
-            clearInterval(memoryTimer);
-            memoryTimer = setInterval(() => {
-                secondsElapsed++;
-                const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
-                const secs = String(secondsElapsed % 60).padStart(2, '0');
-                document.getElementById('memory-time').innerText = `${mins}:${secs}`;
-            }, 1000);
-
-            // Duplicar deck para formar pares e embaralhar
-            memoryCards = [...cardDeck, ...cardDeck]
-                .map((item, index) => ({ ...item, uniqueId: index }))
-                .sort(() => Math.random() - 0.5);
-
-            // Renderizar cartas
-            memoryCards.forEach((card) => {
-                const cardEl = document.createElement('div');
-                cardEl.className = 'h-24 sm:h-28 relative cursor-pointer group perspective-1000';
-                cardEl.onclick = () => handleCardClick(cardEl, card);
-
-                cardEl.innerHTML = `
-                    <div class="card-inner w-full h-full duration-300 transform-style-3d relative rounded-xl border border-slate-700 shadow-md">
-                        <!-- Frente da Carta (Oculta) -->
-                        <div class="absolute inset-0 bg-slate-800 rounded-xl flex flex-col items-center justify-center backface-hidden border border-slate-700">
-                            <i class="fa-solid fa-heart-pulse text-2xl text-slate-600 group-hover:scale-110 transition"></i>
-                            <span class="text-[10px] text-slate-500 mt-1 font-bold">CIRCULATÓRIO</span>
-                        </div>
-                        <!-- Verso da Carta (Revelada) -->
-                        <div class="absolute inset-0 bg-slate-900 border-2 border-red-500/60 rounded-xl flex flex-col items-center justify-center backface-hidden rotate-y-180 p-2 text-center">
-                            <i class="fa-solid ${card.icon} text-2xl ${card.color} mb-1"></i>
-                            <span class="text-xs font-bold text-slate-100">${card.name}</span>
-                        </div>
-                    </div>
-                `;
-                grid.appendChild(cardEl);
-            });
-        }
-
-        function handleCardClick(cardEl, card) {
-            const inner = cardEl.querySelector('.card-inner');
-            if (flippedCards.length >= 2 || inner.classList.contains('rotate-y-180') || cardEl.classList.contains('matched')) {
-                return;
-            }
-
-            // Virar carta
-            inner.classList.add('rotate-y-180');
-            playSound('flip');
-            flippedCards.push({ element: cardEl, card });
-
-            if (flippedCards.length === 2) {
-                memoryMoves++;
-                document.getElementById('memory-moves').innerText = memoryMoves;
-                checkMemoryMatch();
-            }
-        }
-
-        function checkMemoryMatch() {
-            const [c1, c2] = flippedCards;
-            
-            if (c1.card.id === c2.card.id) {
-                // Par encontrado!
-                playSound('match');
-                c1.element.classList.add('matched');
-                c2.element.classList.add('matched');
-                
-                // Destaque de acerto
-                c1.element.querySelector('.card-inner').classList.add('border-green-500');
-                c2.element.querySelector('.card-inner').classList.add('border-green-500');
-
-                matchedPairs++;
-                flippedCards = [];
-
-                if (matchedPairs === cardDeck.length) {
-                    clearInterval(memoryTimer);
-                    setTimeout(showMemoryWin, 500);
-                }
-            } else {
-                // Errou o par
-                setTimeout(() => {
-                    playSound('wrong');
-                    c1.element.querySelector('.card-inner').classList.remove('rotate-y-180');
-                    c2.element.querySelector('.card-inner').classList.remove('rotate-y-180');
-                    flippedCards = [];
-                }, 900);
-            }
-        }
-
-        function showMemoryWin() {
-            playSound('win');
-            confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
-            
-            document.getElementById('win-moves').innerText = memoryMoves;
-            document.getElementById('win-time').innerText = `${secondsElapsed}s`;
-            showElement('memory-win-modal');
-        }
-
-
-        // ================= ABA 3: LÓGICA DO QUIZ INTERATIVO =================
-        const quizQuestions = [
+        // DADOS DO QUIZ
+        const quizData = [
             {
-                question: "Qual vaso sanguíneo transporta o sangue rico em oxigênio do coração para o restante do corpo?",
-                options: ["Veias Cavas", "Artéria Aorta", "Capilares", "Artéria Pulmonar"],
-                correct: 1,
-                explanation: "A **Artéria Aorta** é a maior artéria do corpo. Ela recebe o sangue oxigenado do ventrículo esquerdo e o distribui para todo o organismo."
+                q: "Qual vaso sanguíneo transporta o sangue Rico em Oxigênio do coração para o corpo?",
+                opts: ["Veia Cava", "Artéria Aorta", "Veia Pulmonar", "Capilar"],
+                ans: 1,
+                exp: "A artéria Aorta é a maior e principal artéria do corpo humano, encarregada de levar o sangue bombeado pelo ventrículo esquerdo para todos os tecidos."
             },
             {
-                question: "Qual é a função principal dos Glóbulos Vermelhos (Hemácias)?",
-                options: ["Combater vírus e bactérias", "Coagular o sangue em ferimentos", "Transportar oxigênio pelas proteínas de hemoglobina", "Produzir plasma sanguíneo"],
-                correct: 2,
-                explanation: "Os **Glóbulos Vermelhos** contêm hemoglobina, uma proteína que se liga ao oxigênio nos pulmões e o leva até as células do corpo."
+                q: "Qual é a função das hemácias (glóbulos vermelhos)?",
+                opts: ["Combater infecções", "Coagular o sangue", "Transportar oxigênio", "Produzir anticorpos"],
+                ans: 2,
+                exp: "As hemácias contêm hemoglobina, uma proteína que se liga ao oxigênio para transportá-lo dos pulmões para as células."
             },
             {
-                question: "O que acontece durante a 'Pequena Circulação' (Circulação Pulmonar)?",
-                options: [
-                    "O sangue vai do coração para os pulmões para receber oxigênio e voltar ao coração",
-                    "O sangue vai do coração para as pernas e braços",
-                    "O sangue é filtrado pelos rins",
-                    "O cérebro recebe nutrientes e glicose"
-                ],
-                correct: 0,
-                explanation: "A **Pequena Circulação** é o trajeto do sangue do coração até os pulmões (onde elimina CO₂ e recebe O₂) e seu retorno ao coração."
+                q: "Quantas cavidades (câmaras) tem o coração humano?",
+                opts: ["2", "3", "4", "6"],
+                ans: 2,
+                exp: "O coração possui 4 cavidades: dois átrios (superior) e dois ventrículos (inferior)."
             },
             {
-                question: "Qual componente do sangue é responsável por estancar sangramentos através da coagulação?",
-                options: ["Glóbulos Brancos", "Plaquetas", "Plasma", "Hormônios"],
-                correct: 1,
-                explanation: "As **Plaquetas** são fragmentos celulares que se agrupam no local de uma lesão vascular para formar um tampão e interromper o sangramento."
+                q: "Qual componente do sangue é responsável pela coagulação?",
+                opts: ["Plaquetas", "Leucócitos", "Plasma", "Hemácias"],
+                ans: 0,
+                exp: "As plaquetas ajudam a estancar sangramentos formando coágulos quando um vaso sanguíneo é lesionado."
             },
             {
-                question: "Por que as Veias possuem 'válvulas' internas no seu interior?",
-                options: [
-                    "Para acelerar o batimento cardíaco",
-                    "Para transformar sangue venoso em arterial",
-                    "Para impedir que o sangue retorne no sentido oposto devido à gravidade",
-                    "Para filtrar as impurezas da água"
-                ],
-                correct: 2,
-                explanation: "Como a pressão nas veias é menor, as **válvulas venosas** garantem que o sangue flua apenas em direção ao coração, prevenindo o refluxo."
+                q: "Onde ocorrem as trocas gasosas no corpo?",
+                opts: ["Nas artérias", "Nas veias", "Nos capilares", "No coração"],
+                ans: 2,
+                exp: "Os capilares são vasos microscópicos com paredes finas onde o oxigênio e os nutrientes passam para as células."
             }
         ];
 
-        let currentQuizIndex = 0;
-        let quizScore = 0;
-        let answered = false;
+        let currentQ = 0;
+        let score = 0;
 
-        function initQuiz() {
-            currentQuizIndex = 0;
-            quizScore = 0;
-            answered = false;
+        function renderQuiz() {
+            const q = quizData[currentQ];
+            document.getElementById('quiz-score').innerText = `Pergunta ${currentQ + 1} de ${quizData.length}`;
+            document.getElementById('quiz-q').innerText = q.q;
             
-            showElement('quiz-header');
-            showElement('quiz-card');
-            hideElement('quiz-result');
-            renderQuestion();
-        }
+            const optsDiv = document.getElementById('quiz-opts');
+            optsDiv.innerHTML = '';
+            
+            document.getElementById('quiz-exp').style.display = 'none';
+            document.getElementById('quiz-next-btn').style.display = 'none';
 
-        function renderQuestion() {
-            answered = false;
-            const q = quizQuestions[currentQuizIndex];
-
-            // Atualizar progresso e header
-            document.getElementById('quiz-step-text').innerText = `Pergunta ${currentQuizIndex + 1} de ${quizQuestions.length}`;
-            document.getElementById('quiz-score-text').innerText = `Pontos: ${quizScore}`;
-            document.getElementById('quiz-progress').style.width = `${((currentQuizIndex + 1) / quizQuestions.length) * 100}%`;
-
-            // Ocultar explicativo e botão de avançar
-            hideElement('quiz-explanation');
-            hideElement('quiz-next-btn');
-
-            // Renderizar Pergunta
-            document.getElementById('quiz-question').innerText = q.question;
-
-            // Renderizar Opções
-            const optionsContainer = document.getElementById('quiz-options');
-            optionsContainer.innerHTML = '';
-
-            q.options.forEach((opt, idx) => {
+            q.opts.forEach((opt, idx) => {
                 const btn = document.createElement('button');
-                btn.className = `w-full text-left p-3.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700/80 transition-all font-medium text-xs text-slate-200 flex items-center justify-between group active:scale-98`;
-                btn.onclick = () => selectQuizAnswer(idx, btn);
-
-                btn.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <span class="w-6 h-6 rounded-full bg-slate-700 border border-slate-600 text-slate-300 flex items-center justify-center text-[11px] font-bold group-hover:bg-red-500 group-hover:text-white transition">
-                            ${String.fromCharCode(65 + idx)}
-                        </span>
-                        <span>${opt}</span>
-                    </div>
-                    <i class="fa-regular fa-circle text-slate-500 text-sm"></i>
-                `;
-                optionsContainer.appendChild(btn);
+                btn.className = 'quiz-option';
+                btn.innerText = opt;
+                btn.onclick = () => checkQuiz(idx, btn);
+                optsDiv.appendChild(btn);
             });
         }
 
-        function selectQuizAnswer(selectedIndex, btnElement) {
-            if (answered) return;
-            answered = true;
+        function checkQuiz(selectedIdx, btn) {
+            const q = quizData[currentQ];
+            const allBtns = document.querySelectorAll('.quiz-option');
+            
+            allBtns.forEach(b => b.disabled = true);
 
-            const q = quizQuestions[currentQuizIndex];
-            const optionsBtns = document.getElementById('quiz-options').children;
-
-            // Desabilitar todas as opções
-            for (let btn of optionsBtns) {
-                btn.disabled = true;
-                btn.classList.add('cursor-default');
-            }
-
-            const expBox = document.getElementById('quiz-explanation');
-
-            if (selectedIndex === q.correct) {
-                playSound('correct');
-                quizScore += 20;
-                document.getElementById('quiz-score-text').innerText = `Pontos: ${quizScore}`;
-
-                btnElement.className = "w-full text-left p-3.5 rounded-xl border-2 border-emerald-500 bg-emerald-950/40 font-medium text-xs text-emerald-200 flex items-center justify-between";
-                btnElement.querySelector('i').className = "fa-solid fa-circle-check text-emerald-400 text-base";
-
-                expBox.className = "p-3.5 rounded-xl text-xs space-y-1 bg-emerald-950/30 border border-emerald-500/40 text-emerald-200";
-                expBox.innerHTML = `<div class="font-bold flex items-center gap-1 text-emerald-400"><i class="fa-solid fa-check"></i> Correto!</div><p>${q.explanation}</p>`;
+            if(selectedIdx === q.ans) {
+                btn.classList.add('correct');
+                score++;
             } else {
-                playSound('wrong');
-                btnElement.className = "w-full text-left p-3.5 rounded-xl border-2 border-rose-500 bg-rose-950/40 font-medium text-xs text-rose-200 flex items-center justify-between";
-                btnElement.querySelector('i').className = "fa-solid fa-circle-xmark text-rose-400 text-base";
-
-                // Destacar resposta correta
-                const correctBtn = optionsBtns[q.correct];
-                correctBtn.className = "w-full text-left p-3.5 rounded-xl border-2 border-emerald-500/80 bg-emerald-950/30 font-medium text-xs text-emerald-200 flex items-center justify-between";
-                correctBtn.querySelector('i').className = "fa-solid fa-circle-check text-emerald-400 text-base";
-
-                expBox.className = "p-3.5 rounded-xl text-xs space-y-1 bg-rose-950/30 border border-rose-500/40 text-rose-200";
-                expBox.innerHTML = `<div class="font-bold flex items-center gap-1 text-rose-400"><i class="fa-solid fa-xmark"></i> Incorreto</div><p>${q.explanation}</p>`;
-            }
-
-            showElement('quiz-explanation');
-            showElement('quiz-next-btn');
-        }
-
-        function nextQuestion() {
-            currentQuizIndex++;
-            if (currentQuizIndex < quizQuestions.length) {
-                renderQuestion();
-            } else {
-                showQuizResult();
-            }
-        }
-
-        function showQuizResult() {
-            hideElement('quiz-header');
-            hideElement('quiz-card');
-            showElement('quiz-result');
-
-            document.getElementById('quiz-final-score').innerText = `${quizScore} / 100 PTS`;
-
-            const badge = document.getElementById('quiz-badge');
-            const title = document.getElementById('quiz-result-title');
-            const feedback = document.getElementById('quiz-feedback-msg');
-
-            if (quizScore >= 80) {
-                playSound('win');
-                confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
-                badge.className = "w-20 h-20 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center text-4xl mx-auto border border-amber-500/40 animate-bounce";
-                badge.innerHTML = `<i class="fa-solid fa-crown"></i>`;
-                title.innerText = "Doutor em Circulação!";
-                feedback.innerText = "Parabéns! Você demonstrou domínio completo do sistema circulatório!";
-            } else if (quizScore >= 60) {
-                badge.className = "w-20 h-20 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center text-4xl mx-auto border border-blue-500/40";
-                badge.innerHTML = `<i class="fa-solid fa-award"></i>`;
-                title.innerText = "Muito Bom!";
-                feedback.innerText = "Você tem um ótimo conhecimento sobre como o sangue viaja pelo corpo!";
-            } else {
-                badge.className = "w-20 h-20 bg-slate-700/50 text-slate-300 rounded-full flex items-center justify-center text-4xl mx-auto border border-slate-600";
-                badge.innerHTML = `<i class="fa-solid fa-book-open"></i>`;
-                title.innerText = "Vale a Pena Revisar!";
-                feedback.innerText = "Dê uma olhada no Resumo/Guia para memorizar o percurso do sangue e tente de novo.";
-            }
-        }
-
-        function restartQuiz() {
-            initQuiz();
-        }
-
-
-        // ================= FUNÇÕES UTILITÁRIAS DE UI =================
-        function showElement(id) {
-            document.getElementById(id).classList.remove('hidden');
-        }
-        function hideElement(id) {
-            document.getElementById(id).classList.add('hidden');
-        }
-
-        // Inicializar aplicação ao carregar
-        window.onload = function() {
-            // Inicializar primeira exibição
-            switchTab('guide');
-        }
-    </script>
-</body>
-</html>
+                btn.classList
